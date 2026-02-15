@@ -46,7 +46,7 @@
 
 ### 编译与运行 (Build)
 ```bash
-git clone https://github.com/your-username/RC-ESDF-2D.git
+git clone https://github.com/JackJu-HIT/RC-ESDF-2D.git
 cd RC-ESDF-2D
 mkdir build && cd build
 cmake ..
