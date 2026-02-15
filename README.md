@@ -1,69 +1,113 @@
 # RC-ESDF-2D
-🚀 A high-performance, robo-centric 2D Signed Distance Field implementation for real-time collision avoidance and local trajectory optimization.
-
-# RC-ESDF: Robo-Centric 2D Signed Distance Field
+🚀 **A high-performance C++ implementation of the Robo-centric ESDF algorithm for any-shape robotic planning.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![C++: 14/17](https://img.shields.io/badge/C++-14%2F17-blue.svg)](https://isocpp.org/)
+[![Origin: FAST-Lab](https://img.shields.io/badge/Origin-FAST--Lab-red.svg)](https://github.com/ZJU-FAST-Lab)
 
-**RC-ESDF** 是一个高效、轻量级的机器人中心欧几里得符号距离场 (2D ESDF) 实现库。它专为地面机器人的局部规划（如 TEB, MPC）设计，支持实时的高速距离查询和解析梯度计算。
+## 📖 简介 (Introduction)
 
-![ESDF Visualization](https://your-image-link-here.com/demo.png) 
-*(这里放你最后运行出来的彩色梯度图，非常吸引人)*
+**RC-ESDF-2D** 是基于浙大高飞团队（FAST-Lab）研究成果的高效复现版本。该库实现在机器人中心坐标系（Body Frame）下构建欧几里得符号距离场（2D ESDF），专为复杂形状机器人的局部路径规划（如 TEB, MPC）提供核心支撑。
 
-## ✨ 特性 (Features)
+本项目复现自以下学术论文：
+> **Robo-centric ESDF: A Fast and Accurate Whole-body Collision Evaluation Tool for Any-shape Robotic Planning**, *Weijia Zhou, Fei Gao, et al.*, **IEEE Robotics and Automation Letters (RA-L)**.
 
-*   **机器人中心坐标系 (Robo-Centric)**: 所有的计算都在 Body Frame 下进行，非常适合动态障碍物避障和局部优化。
-*   **高速查询**: 基于双线性插值 (Bilinear Interpolation) 的 $O(1)$ 时间复杂度查询。
-*   **解析梯度 (Analytic Gradient)**: 提供连续、平滑的梯度场，助力基于梯度的优化器（如 g2o, Ceres）快速收敛。
-*   **可视化调试**: 集成基于 OpenCV 的诊断工具，直观查看距离场分布、像素网格对齐和梯度方向。
-*   **零依赖 (除核心库外)**: 仅依赖 Eigen3，保持极高的可移植性。
+---
+
+## ✨ 核心特性 (Features)
+
+*   **论文算法复现**: 忠实复现了论文中提出的机器人中心 ESDF 构建逻辑，适用于任意形状的多边形足迹（Any-shape Footprint）。
+*   **机器人中心坐标系 (Robo-Centric)**: 所有计算均在 Body Frame 下实时生成，无需全局地图，天然适配动态环境避障。
+*   **高速 $O(1)$ 查询**: 基于双线性插值（Bilinear Interpolation），单次查询耗时仅约 **2.4 μs**（测试环境：普通移动端 CPU），满足极致的实时性需求。
+*   **解析梯度 (Analytic Gradient)**: 提供连续、平滑的一阶解析梯度，确保基于梯度的优化器（如 g2o, Ceres, NLopt）能够快速且稳定地收敛。
+*   **可视化辅助**: 内置基于 OpenCV 的诊断工具，可直观对比物理轮廓（Yellow Box）与离散场（SDF Field）的对齐准确度。
+*   **轻量化设计**: 仅依赖 Eigen3 核心库，易于集成到现有的 ROS 或嵌入式导航系统中。
+
+---
+
+## 📊 可视化效果 (Visualization)
+
+![ESDF Visualization](https://github.com/JackJu-HIT/RC-ESDF-2D/blob/master/files/RC-ESDF%20Normalized.png) 
+
+通过内置的 `visualizeEsdf()` 函数，您可以清晰地观察：
+*   🔴 **红色区域**: 机器人内部 ($dist < 0$)。
+*   🟢 **绿色区域**: 机器人外部安全区 ($dist > 0$)。
+*   🟨 **黄色轮廓**: 输入的原始多边形物理边界。
+*   ⚪ **白色箭头**: 解析梯度向量 $\nabla D$（始终指向最短路径脱离碰撞的方向）。
+
+---
 
 ## 🚀 快速开始 (Quick Start)
 
 ### 依赖 (Dependencies)
-*   Eigen3 (必选)
-*   OpenCV (可选，仅用于可视化)
+*   [Eigen3](http://eigen.tuxfamily.org/) (核心计算)
+*   [OpenCV](https://opencv.org/) (可选，仅用于可视化调试)
 *   CMake (>= 3.10)
 
-### 编译 (Build)
+### 编译与运行 (Build)
 ```bash
+git clone https://github.com/your-username/RC-ESDF-2D.git
+cd RC-ESDF-2D
 mkdir build && cd build
 cmake ..
 make
+./test_rc_esdf
 ```
 
-### 简单示例 (Example)
+### 核心代码示例 (Basic Usage)
 ```cpp
 #include "rc_esdf.h"
 
 RcEsdfMap esdf;
-esdf.initialize(10.0, 10.0, 0.1); // 10m x 10m, 0.1m resolution
+// 初始化地图：10m x 10m, 分辨率 0.1m
+esdf.initialize(10.0, 10.0, 0.1); 
 
-// 定义机器人多边形
-std::vector<Eigen::Vector2d> footprint = {{0.5, 0.3}, {-0.5, 0.3}, {-0.5, -0.3}, {0.5, -0.3}};
+// 定义机器人多边形顶点 (Body Frame)
+std::vector<Eigen::Vector2d> footprint;
+footprint.push_back({0.7, 0.3});
+footprint.push_back({-0.7, 0.3});
+footprint.push_back({-0.7, -0.3});
+footprint.push_back({0.7, -0.3});
+
+// 离线/启动时生成 SDF 场
 esdf.generateFromPolygon(footprint);
 
-// 在线查询
+// 在线查询：输入障碍物在 Body Frame 的坐标
 double dist;
 Eigen::Vector2d grad;
 if (esdf.query(Eigen::Vector2d(0.4, 0.2), dist, grad)) {
-    // 处理碰撞或更新代价函数
+    if (dist < 0) {
+        // 发生碰撞！利用 -grad 方向将机器人推离障碍物
+    }
 }
 ```
 
-## 📊 可视化说明 (Visualization)
-仓库提供的诊断工具可以显示：
-*   **红色区域**: 机器人本体内部 ($dist < 0$)。
-*   **绿色区域**: 外部安全区域 ($dist > 0$)。
-*   **黄色框**: 输入的物理轮廓。
-*   **白色箭头**: 距离场梯度 $\nabla D$（指向安全方向）。
+---
 
 ## 🛠 应用场景 (Applications)
-*   **TEB Local Planner**: 作为插件替换原有的简单碰撞检查，提供平滑推力。
-*   **MPC 避障**: 在预测控制中加入距离约束。
-*   **虚拟人工势场法**: 生成高质量的引力/斥力场。
+*   **TEB Local Planner**: 增强碰撞检测逻辑，为非圆形状机器人提供更精确的代价约束。
+*   **轨迹优化 (Trajectory Optimization)**: 在 MPC 或 EGO-Planner 框架中作为硬约束或惩罚项。
+*   **势场法导航**: 生成高质量、无震荡的斥力场。
 
-## 📄 开源协议 (License)
-本项目采用 [MIT License](LICENSE) 协议。
+---
+
+## 📚 引用 (Citation)
+
+如果您在学术工作中引用了本实现，请务必引用原论文作者：
+
+```bibtex
+@article{zhou2021robocentric,
+  title={Robo-centric ESDF: A Fast and Accurate Whole-body Collision Evaluation Tool for Any-shape Robotic Planning},
+  author={Zhou, Weijia and Wang, Michael Yu and Gao, Fei},
+  journal={IEEE Robotics and Automation Letters},
+  volume={6},
+  number={4},
+  pages={6881--6888},
+  year={2021},
+  publisher={IEEE}
+}
+```
+
+## 📄 协议 (License)
+本项目基于 [MIT License](LICENSE) 开源。
 ```
