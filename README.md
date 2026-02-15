@@ -10,13 +10,13 @@
 **RC-ESDF-2D** 是基于浙大高飞团队（FAST-Lab）研究成果的高效复现版本。该库实现在机器人中心坐标系（Body Frame）下构建欧几里得符号距离场（2D ESDF），专为复杂形状机器人的局部路径规划（如 TEB, MPC）提供核心支撑。
 
 本项目复现自以下学术论文：
-> **Robo-centric ESDF: A Fast and Accurate Whole-body Collision Evaluation Tool for Any-shape Robotic Planning**, *Weijia Zhou, Fei Gao, et al.*, **IEEE Robotics and Automation Letters (RA-L)**.
+> **Robo-centric ESDF: A Fast and Accurate Whole-body Collision Evaluation Tool for Any-shape Robotic Planning**, *Weijia Zhou, Fei Gao, et al.*
 
 ---
 
 ## ✨ 核心特性 (Features)
 
-*   **论文算法复现**: 忠实复现了论文中提出的机器人中心 ESDF 构建逻辑，适用于任意形状的多边形足迹（Any-shape Footprint）。
+*   **论文算法复现**: 复现了论文中提出的机器人中心 ESDF 构建逻辑，适用于任意形状的多边形足迹（Any-shape Footprint）。
 *   **机器人中心坐标系 (Robo-Centric)**: 所有计算均在 Body Frame 下实时生成，无需全局地图，天然适配动态环境避障。
 *   **高速 $O(1)$ 查询**: 基于双线性插值（Bilinear Interpolation），单次查询耗时仅约 **2.4 μs**（测试环境：普通移动端 CPU），满足极致的实时性需求。
 *   **解析梯度 (Analytic Gradient)**: 提供连续、平滑的一阶解析梯度，确保基于梯度的优化器（如 g2o, Ceres, NLopt）能够快速且稳定地收敛。
@@ -91,22 +91,7 @@ if (esdf.query(Eigen::Vector2d(0.4, 0.2), dist, grad)) {
 
 ---
 
-## 📚 引用 (Citation)
 
-如果您在学术工作中引用了本实现，请务必引用原论文作者：
-
-```bibtex
-@article{zhou2021robocentric,
-  title={Robo-centric ESDF: A Fast and Accurate Whole-body Collision Evaluation Tool for Any-shape Robotic Planning},
-  author={Zhou, Weijia and Wang, Michael Yu and Gao, Fei},
-  journal={IEEE Robotics and Automation Letters},
-  volume={6},
-  number={4},
-  pages={6881--6888},
-  year={2021},
-  publisher={IEEE}
-}
-```
 
 ## 📄 协议 (License)
 本项目基于 [MIT License](LICENSE) 开源。
