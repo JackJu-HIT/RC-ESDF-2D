@@ -92,11 +92,8 @@ if (esdf.query(Eigen::Vector2d(0.4, 0.2), dist, grad)) {
 ---
 
 
-
 ## 📄 协议 (License)
 本项目基于 [MIT License](LICENSE) 开源。
-```
-
 
 ## 💡 技术解析文章推荐
 为了帮助您更好地理解本项目，建议阅读以下专题文章：
