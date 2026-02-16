@@ -96,3 +96,9 @@ if (esdf.query(Eigen::Vector2d(0.4, 0.2), dist, grad)) {
 ## 📄 协议 (License)
 本项目基于 [MIT License](LICENSE) 开源。
 ```
+
+
+## 💡 技术解析文章推荐
+为了帮助您更好地理解本项目，建议阅读以下专题文章：
+*   [【除夕礼&机器人轨迹优化算法】2.4μs极致查询！支持任意轮廓的RC-ESDF算法C++工程实现【附Github仓库链接】](https://mp.weixin.qq.com/s/5BpdH-d5nquTWPLqN1UMtg)
+
